@@ -1,0 +1,74 @@
+.swiper-button-prev, .swiper-button-next{
+  color:#F15926;
+ height: 2px !important;
+ width: 2px !important;
+ font-size: 10px !important;
+  
+  
+}
+
+
+/* .modal-video-body {
+  margin: 0px;
+  padding: 0px;
+  background: none !important;
+  border: none !important ;
+}
+
+.modal-video {
+  max-width: 10%;
+
+  justify-content: start;
+  align-items: start;
+  margin: 0;
+  padding: 0;
+  background: none !important;
+  border: none !important ;
+}
+
+@media screen and (max-width: 768px) {
+  .modal-video {
+   
+    max-width: 50%; 
+   
+  }
+  .modal-video-inner {
+    margin: 0px;
+    padding: 0px;
+    background-color: none !important;
+    border: none !important ;
+    border-right: none !important;
+    border-style: none !important;
+    border-left: none !important;
+  }
+  
+}
+
+.modal-video-inner {
+  margin: 0px;
+  padding: 0px;
+  background-color: none !important;
+  border: none !important ;
+  border-right: none !important;
+  border-style: none !important;
+  border-left: none !important;
+  border-color: red;
+  height: 1200px;
+}
+
+.modal-video-movie-wrap {
+  width: 200px;
+  background: none !important;
+  border: none !important ;
+}
+
+.modal-video-close-btn {
+  background: gray;
+  border: none !important ;
+}
+
+iframe {
+
+  border: none !important ; 
+  border-color: red;
+} */
