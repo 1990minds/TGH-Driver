@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import RouteSelectionModal from "./routeselectionmodal";
 import { parse } from "@fortawesome/fontawesome-svg-core";
 import { driverSelector, fetchOnedriver } from "../../api/driver";
+import { getAllBookings, seatBookSelector } from "../../api/seatbooking";
 
 const handileridedetals = (id) => {
   console.log(id);
@@ -71,42 +72,53 @@ const Index = () => {
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState(null);
   const [userid, setUserid] = useState("");
-  const { driverAuthenticate,driver } = useSelector((state) => state.driver);
+  const { driverAuthenticate, driver } = useSelector((state) => state.driver);
   const [currentDate, setCurrentDate] = useState(new Date());
   // const { all_booking } = useSelector((state) => state.booking);
   console.log(driverAuthenticate);
   const { all_route } = useSelector(routeSelector);
   const { all_booking } = useSelector(bookingSelector);
+
+  const { getAllBooks } = useSelector(seatBookSelector);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customerDetails, setCustomerDetails] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
-const {current_driver} = useSelector(driverSelector)
+  const { current_driver } = useSelector(driverSelector)
+
   const handleseecustomer = (data) => {
+    console.log(data)
     setCustomerDetails(data);
     setIsModalOpen(true);
   };
 
-const driver_id_ = (localStorage.getItem("driverid"))
+
+  console.log("getAllBooks is-------", customerDetails)
+
+  const driver_id_ = (localStorage.getItem("driverid"))
   const closeModal = () => {
     setIsModalOpen(false); // Close modal
     setCustomerDetails(null); // Clear customer data
   };
-  
+
   useEffect(() => {
-    const driverid = localStorage.getItem("Driver") 
+    const driverid = localStorage.getItem("Driver")
     // const driver_id_ = localStorage.getItem("driverid")
-    console.log("Setting otp's respective login setup",driverid);
+    console.log("Setting otp's respective login setup", driverid);
     dispatch(fetchAllbooking(driverid));
     dispatch(fetchAllroute());
     dispatch(fetchOnedriver(driver_id_))
     dispatch(fetchAllbooking(driver_id_))
-  }, [dispatch]);
-useEffect(()=>{
-if(driver?._id){
-  dispatch(fetchAllbooking(driver?.id));
+    dispatch(getAllBookings(driver_id_))
+  }, [dispatch, driver_id_]);
 
-}
-},[driver])
+
+  useEffect(() => {
+    if (driver?._id) {
+      dispatch(fetchAllbooking(driver?.id));
+
+    }
+  }, [driver])
   const handleInstallClick = () => {
     setInstallable(false);
     if (deferredPrompt) {
@@ -133,7 +145,7 @@ if(driver?._id){
       setInstallable(true);
     };
 
-    const handleAppInstalled = () => {};
+    const handleAppInstalled = () => { };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     window.addEventListener("appinstalled", handleAppInstalled);
@@ -180,12 +192,12 @@ if(driver?._id){
     }
   }, [user]);
 
-useEffect(()=>{
-  if(!userData){
-    setUserData(driver)
-  }
+  useEffect(() => {
+    if (!userData) {
+      setUserData(driver)
+    }
 
-},driver)
+  }, driver)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -203,7 +215,7 @@ useEffect(()=>{
           );
           console.log("API response 🎈🎃🎠", response.data);
           localStorage.setItem("Driver", response.data.driver._id);
-          setUserData(response?.data?.driver );
+          setUserData(response?.data?.driver);
           localStorage.setItem("authToken", response.data.token);
         } else {
           console.error("phone number is not available.");
@@ -218,7 +230,7 @@ useEffect(()=>{
     }
   }, []);
 
-  
+
   useEffect(() => {
     const interval = setInterval(() => setCurrentDate(new Date()), 60000);
     return () => clearInterval(interval);
@@ -227,7 +239,7 @@ useEffect(()=>{
   console.log("Authentication got it ", authStatus);
   const cookies = document.cookie;
   console.log(cookies);
-  
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -246,12 +258,12 @@ useEffect(()=>{
     const hoursDiff = timeDiffInMillis / (1000 * 60 * 60);
     console.log(`Time Diff (in hours): ${hoursDiff}`);
 
-    return hoursDiff <= 24 ;
+    return hoursDiff <= 24;
   };
   useEffect(() => {
     setIsVisible(true);
   }, []);
-  
+
 
   const date_in_normal_form = (rideDate) => {
     // Convert the rideDate string to a Date object
@@ -273,8 +285,8 @@ useEffect(()=>{
     return formattedDate;
   };
   console.log(driver?._id)
-  console.log("here is the fkin driver",current_driver)
-  console.log("here is user data",userData)
+  console.log("here is the fkin driver", current_driver)
+  console.log("here is user data", userData)
 
   return (
     <div>
@@ -322,14 +334,14 @@ useEffect(()=>{
           <div className="mt-6 mb-12">
             <h1 className="font-bold text-4xl text-center">Upcoming Rides</h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4 sm:px-6 md:px-8 py-6 w-full max-w-screen-xl mx-auto">
-              {all_booking.map((product, index) => (
+              {getAllBooks?.map((product, index) => (
                 <div className="max-w-sm bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
                   <h5 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                     {product?.route?.name}
                   </h5>
-                  {date_in_normal_form(product?.ride_date_and_time)}
+                  {date_in_normal_form(product?.rideDate)}
                   <p className="text-sm text-gray-500">
-                    {isRideSoon(product?.ride_date_and_time) ? (
+                    {isRideSoon(product?.rideDate) ? (
                       <div>
                         <button
                           className="flex items-center mt-4 px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
@@ -361,111 +373,66 @@ useEffect(()=>{
                               <h3 className="text-2xl font-semibold mb-4">
                                 Customer Details
                               </h3>
-                              {customerDetails ? (
+                              {customerDetails?.bookedSeats?.length > 0 ? (
                                 <motion.div
                                   className="space-y-4"
                                   initial={{ opacity: 0, rotateX: 90 }}
                                   animate={{
                                     opacity: isVisible ? 1 : 0,
-                                    rotateX: 0, 
+                                    rotateX: 0,
                                   }}
                                   transition={{ duration: 0.5 }}
-                              
                                 >
-                                  {/* Name */}
-                                  <div className="flex items-start space-x-1">
-                                    <strong className="text-gray-700">
-                                      Name:
-                                    </strong>
-                                    <span className="text-gray-900">
-                                      {customerDetails?.userid?.name || "N/A"}
-                                    </span>
-                                  </div>
-
-                                  {/* Email */}
-                                  <div className="flex items-start space-x-1">
-                                    <strong className="text-gray-700">
-                                      Email:
-                                    </strong>
-                                    <span className="text-gray-900">
-                                      {customerDetails?.userid?.email ||
-                                        "Not Available"}
-                                    </span>
-                                  </div>
-
-                                  {/* Phone Number */}
-                                  <div className="flex items-start space-x-1">
-                                    <strong className="text-gray-700">
-                                      Phone:
-                                    </strong>
-                                    <span className="text-gray-900">
-                                      {customerDetails?.userid?.phone_number ||
-                                        "No Phone Number"}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-start space-x-1">
-                                    <strong className="text-gray-700">
-                                      Pickup Loaction:
-                                    </strong>
-                                    <span className="text-gray-900">
-                                      {customerDetails?.pickup_point }
-                                    </span>
-                                  </div>
-                                  <div className="flex items-start space-x-1">
-                                    <strong className="text-gray-700">
-                                      Drop Location:
-                                    </strong>
-                                    <span className="text-gray-900">
-                                      {customerDetails?.drop_point}
-                                    </span>
-                                  </div>
-
-                                  {/* Number of Seats */}
-                                  <div className="flex items-start space-x-1">
-                                    <strong className="text-gray-700">
-                                      Number of Seats:
-                                    </strong>
-                                    <span className="text-gray-900">
-                                      {customerDetails?.selected_seats
-                                        ?.length || 0}
-                                    </span>
-                                  </div>
-
-                                  {/* Seat Details (if any seats are selected) */}
-                                  {customerDetails?.selected_seats?.length >
-                                    0 && (
+                                  {customerDetails.bookedSeats.map((booking, index) => (
                                     <motion.div
+                                      key={booking._id}
+                                      className="border p-4 rounded-lg shadow"
                                       initial={{ opacity: 0 }}
                                       animate={{ opacity: 1 }}
-                                      transition={{ duration: 0.5, delay: 0.2 }}
+                                      transition={{ duration: 0.5, delay: index * 0.2 }}
                                     >
-                                      <strong className="block text-gray-700">
-                                        Seat Numbers:
-                                      </strong>
-                                      <ul className="list-disc pl-5 text-gray-800 space-y-1">
-                                        {customerDetails?.selected_seats?.map(
-                                          (seat, index) => (
+                                      {/* Name */}
+                                      <div className="flex items-start space-x-1">
+                                        <strong className="text-gray-700">Name:</strong>
+                                        <span className="text-gray-900">{booking.userId?.name || "N/A"}</span>
+                                      </div>
+
+                                      {/* Email */}
+                                      <div className="flex items-start space-x-1">
+                                        <strong className="text-gray-700">Email:</strong>
+                                        <span className="text-gray-900">{booking.userId?.email || "Not Available"}</span>
+                                      </div>
+
+                                      {/* Phone Number */}
+                                      <div className="flex items-start space-x-1">
+                                        <strong className="text-gray-700">Phone:</strong>
+                                        <span className="text-gray-900">{booking.userId?.phone_number || "No Phone Number"}</span>
+                                      </div>
+
+                                      {/* Seat Numbers */}
+                                      <div className="flex items-start space-x-1">
+                                        <strong className="text-gray-700">Seat Numbers:</strong>
+                                        <ul className="list-disc pl-5 text-gray-800 space-y-1">
+                                          {booking.seatNumbers.map((seat, idx) => (
                                             <motion.li
-                                              key={index}
+                                              key={idx}
                                               initial={{ x: -10, opacity: 0 }}
                                               animate={{ x: 0, opacity: 1 }}
-                                              transition={{
-                                                duration: 0.3,
-                                                delay: index * 0.1,
-                                              }}
+                                              transition={{ duration: 0.3, delay: idx * 0.1 }}
                                               className="text-gray-900"
                                             >
-                                            0{seat}
+                                              0{seat}
                                             </motion.li>
-                                          )
-                                        )}
-                                      </ul>
+                                          ))}
+                                        </ul>
+                                      </div>
                                     </motion.div>
-                                  )}
+                                  ))}
                                 </motion.div>
                               ) : (
                                 <p>No customer data available.</p>
                               )}
+
                               <button
                                 className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
                                 onClick={closeModal}
@@ -499,7 +466,7 @@ useEffect(()=>{
               Your Vehicles
             </h1>
             <div className="flex flex-wrap justify-center gap-6">
-              {userData||current_driver?.vehicleId?.map((vehicle, index) => (
+              {userData || current_driver?.vehicleId?.map((vehicle, index) => (
                 <div
                   key={index}
                   className="flex bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-4 rounded-lg shadow-md w-[26rem] sm:w-96"
@@ -522,7 +489,7 @@ useEffect(()=>{
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         Selected Route:{" "}
-                        {userData||current_driver?.vehicleId[index]?.route_id?.name}
+                        {userData || current_driver?.vehicleId[index]?.route_id?.name}
                       </p>
                     </div>
                     <div className="flex justify-start">

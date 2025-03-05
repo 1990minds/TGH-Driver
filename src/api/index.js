@@ -6,6 +6,8 @@ import Hotelreducer from "./Hotel";
 import bookingReducer from './bookings';
 import routeReducer from './route'
 import vehicleReducer from './vehicle'
+import seatBookReducer from './seatbooking'
+
 
 export default configureStore({
   reducer: {
@@ -16,5 +18,6 @@ export default configureStore({
     route: routeReducer,
     booking: bookingReducer,
     vehicle: vehicleReducer,
+    seatBook:seatBookReducer
   },
 });
