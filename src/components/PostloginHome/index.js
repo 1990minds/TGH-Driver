@@ -12,6 +12,8 @@ import Mustang from "../../assets/4k-ultra-hd-mustang-sleek-black-gitz2vs9nt2wz9
 import { fetchAllroute, routeSelector } from "../../api/route";
 import { motion } from "framer-motion";
 import RouteSelectionModal from "./routeselectionmodal";
+import { parse } from "@fortawesome/fontawesome-svg-core";
+import { driverSelector, fetchOnedriver } from "../../api/driver";
 
 const handileridedetals = (id) => {
   console.log(id);
@@ -69,7 +71,7 @@ const Index = () => {
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState(null);
   const [userid, setUserid] = useState("");
-  const { driverAuthenticate } = useSelector((state) => state.driver);
+  const { driverAuthenticate,driver } = useSelector((state) => state.driver);
   const [currentDate, setCurrentDate] = useState(new Date());
   // const { all_booking } = useSelector((state) => state.booking);
   console.log(driverAuthenticate);
@@ -78,22 +80,33 @@ const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customerDetails, setCustomerDetails] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
+const {current_driver} = useSelector(driverSelector)
   const handleseecustomer = (data) => {
     setCustomerDetails(data);
     setIsModalOpen(true);
   };
 
+const driver_id_ = (localStorage.getItem("driverid"))
   const closeModal = () => {
     setIsModalOpen(false); // Close modal
     setCustomerDetails(null); // Clear customer data
   };
+  
   useEffect(() => {
-    const driverid = localStorage.getItem("Driver");
-    console.log("Setting otp's respective login setup");
+    const driverid = localStorage.getItem("Driver") 
+    // const driver_id_ = localStorage.getItem("driverid")
+    console.log("Setting otp's respective login setup",driverid);
     dispatch(fetchAllbooking(driverid));
     dispatch(fetchAllroute());
+    dispatch(fetchOnedriver(driver_id_))
+    dispatch(fetchAllbooking(driver_id_))
   }, [dispatch]);
+useEffect(()=>{
+if(driver?._id){
+  dispatch(fetchAllbooking(driver?.id));
 
+}
+},[driver])
   const handleInstallClick = () => {
     setInstallable(false);
     if (deferredPrompt) {
@@ -167,6 +180,13 @@ const Index = () => {
     }
   }, [user]);
 
+useEffect(()=>{
+  if(!userData){
+    setUserData(driver)
+  }
+
+},driver)
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -183,7 +203,7 @@ const Index = () => {
           );
           console.log("API response 🎈🎃🎠", response.data);
           localStorage.setItem("Driver", response.data.driver._id);
-          setUserData(response?.data?.driver);
+          setUserData(response?.data?.driver );
           localStorage.setItem("authToken", response.data.token);
         } else {
           console.error("phone number is not available.");
@@ -197,6 +217,8 @@ const Index = () => {
       fetchData();
     }
   }, []);
+
+  
   useEffect(() => {
     const interval = setInterval(() => setCurrentDate(new Date()), 60000);
     return () => clearInterval(interval);
@@ -205,26 +227,7 @@ const Index = () => {
   console.log("Authentication got it ", authStatus);
   const cookies = document.cookie;
   console.log(cookies);
-  const vehicles = [
-    {
-      name: "Toyota Corolla",
-      route: "Bangalore - Bellary",
-      plate: "ABC 123",
-      image: Corolla,
-    },
-    {
-      name: "Honda Civic",
-      route: "Mumbai - Pune",
-      plate: "XYZ 456",
-      image: Civic,
-    },
-    {
-      name: "Ford Mustang",
-      route: "Delhi - Agra",
-      plate: "LMN 789",
-      image: Mustang,
-    },
-  ];
+  
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -248,6 +251,7 @@ const Index = () => {
   useEffect(() => {
     setIsVisible(true);
   }, []);
+  
 
   const date_in_normal_form = (rideDate) => {
     // Convert the rideDate string to a Date object
@@ -268,6 +272,9 @@ const Index = () => {
 
     return formattedDate;
   };
+  console.log(driver?._id)
+  console.log("here is the fkin driver",current_driver)
+  console.log("here is user data",userData)
 
   return (
     <div>
@@ -277,7 +284,7 @@ const Index = () => {
         <div>
           <div className="relative bg-gray-900 text-white text-center py-16 ">
             <h2 className="text-4xl font-bold mb-2">Welcome</h2>
-            <h2 className="text-4xl font-bold mb-2">{userData?.name}</h2>
+            <h2 className="text-4xl font-bold mb-2">{userData?.name || current_driver?.name}</h2>
             <h3 className="text-2xl font-bold mb-6">{`${date}, ${weekday}`}</h3>
             <p className="text-lg font-light mb-6">
               Track all your Rides and keep transactions organized
@@ -492,7 +499,7 @@ const Index = () => {
               Your Vehicles
             </h1>
             <div className="flex flex-wrap justify-center gap-6">
-              {userData?.vehicleId?.map((vehicle, index) => (
+              {userData||current_driver?.vehicleId?.map((vehicle, index) => (
                 <div
                   key={index}
                   className="flex bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-4 rounded-lg shadow-md w-[26rem] sm:w-96"
@@ -515,7 +522,7 @@ const Index = () => {
                       </h3>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
                         Selected Route:{" "}
-                        {userData?.vehicleId[index]?.route_id?.name}
+                        {userData||current_driver?.vehicleId[index]?.route_id?.name}
                       </p>
                     </div>
                     <div className="flex justify-start">
