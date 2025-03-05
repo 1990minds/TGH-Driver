@@ -42,6 +42,7 @@ export default function ProfilePage() {
           localStorage.setItem("authToken", response.data.token);
         } else {
           console.error("phone number is not available.");
+          setUserData(driver)
         }
       } catch (err) {
         console.error("Error occurred while creating driver:", err);
@@ -50,6 +51,7 @@ export default function ProfilePage() {
 
     fetchData();
   }, []);
+  console.log(driver)
   console.log(userData);
   const handleclick = async (item) => {
     if (item === "Performance") {
@@ -69,6 +71,7 @@ export default function ProfilePage() {
       
     }
   };
+  
   
   return (
     <div className="max-w-md mx-auto bg-white min-h-screen">

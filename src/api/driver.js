@@ -7,9 +7,9 @@ const token = localStorage.getItem("authToken")
   ? localStorage.getItem("authToken")
   : null;
 
-const driver = localStorage.getItem("driver")
-  ? localStorage.getItem("driver")
-  : null;
+// const driver = localStorage.getItem("driver")
+//   ? localStorage.getItem("driver")
+//   : null;
 
 const initialState = {
   all_driver: [],
@@ -17,7 +17,7 @@ const initialState = {
   hasError: false,
   current_driver: null,
   driverAuthenticate: token ? true : false,
-  driver: driver,
+  driver: null,
   token: token,
   driverData: null,
   otpSent:false,
@@ -46,7 +46,7 @@ export const driverSlice = createSlice({
     loginSuccess(state, action) {
       state.loading = false;
       state.isAuthenticated = true;
-      state.user = action.payload.user;
+      state.user = action.payload.user?._id;
       state.token = action.payload.token || null;
       state.loginMethod = action.payload.loginMethod;
     },
@@ -76,8 +76,10 @@ export const driverSlice = createSlice({
     getAuthenticate: (state, { payload }) => {
       state.loading = false;
       state.driverAuthenticate = true;
-      state.driver= payload.driver;
+      console.log("here it is payload",payload)
+      state.driver= payload;
       state.token = payload.accessToken;
+      localStorage.setItem("driverid",payload?._id)
     },
 
     isAuthenticateError: (state) => {
@@ -318,13 +320,15 @@ export const deletedriver = (id) => async (dispatch) => {
 export const fetchdriverlogin = (logindata) => async (dispatch) => {
   dispatch(getdriver());
   try {
+    console.log("here  i am in redux with followinfg details ", logindata)
     const { data } = await axios.post(
-      keyUri.BACKEND_URI + "/api/driverAuth",
+      keyUri.BACKEND_URI + "/api/driverAuthoo",
       logindata,
       config
     );
+    console.log("after response",data)
 
-    dispatch(getAuthenticate(data));
+    dispatch(getAuthenticate(data?.user));
     localStorage.setItem("authToken", JSON.stringify(data.accessToken));
   } catch (error) {
     dispatch(isAuthenticateError());

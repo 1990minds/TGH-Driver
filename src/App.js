@@ -25,7 +25,8 @@ import AllRoutes from '../src/components/Routes';
 import Indepthroute from '../src/components/Routes/route-traking';
 import Payments from '../src/components/Payments';
 import RouteDetails from '../src/components/Bookings/Bookingdetails'
-import Documents from '../src/components/Profile/documentsmain'
+import Documents from '../src/components/Profile/documentsmain';
+import SigninWithPassword from '../src/components/HomePage/signinvithpswd';
 
 function App() {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
@@ -68,6 +69,7 @@ function App() {
           <Route path='/payments' element={<Payments />} />
           <Route path='/ridedetails/:rideid' element={<RouteDetails />} />
           <Route path='/documents' element={<Documents />} />
+          <Route path='/signpswd' element={<SigninWithPassword />} />
 
 
         </Routes>
