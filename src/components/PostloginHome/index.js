@@ -14,7 +14,7 @@ import { motion } from "framer-motion";
 import RouteSelectionModal from "./routeselectionmodal";
 import { parse } from "@fortawesome/fontawesome-svg-core";
 import { driverSelector, fetchOnedriver } from "../../api/driver";
-import { getAllBookings, seatBookSelector } from "../../api/seatbooking";
+import { getAllBookings, seatBookSelector, updateSeatBooks } from "../../api/seatbooking";
 
 const handileridedetals = (id) => {
   console.log(id);
@@ -85,10 +85,12 @@ const Index = () => {
   const [customerDetails, setCustomerDetails] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
   const { current_driver } = useSelector(driverSelector);
+  const [rideStatus, setRideStatus] = useState(null);
 
   const handleseecustomer = (data) => {
     console.log(data);
     setCustomerDetails(data);
+    setRideStatus(data.status);
     setIsModalOpen(true);
   };
 
@@ -142,7 +144,7 @@ const Index = () => {
       setInstallable(true);
     };
 
-    const handleAppInstalled = () => {};
+    const handleAppInstalled = () => { };
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     window.addEventListener("appinstalled", handleAppInstalled);
@@ -259,29 +261,7 @@ const Index = () => {
     setIsVisible(true);
   }, []);
 
-  const handleRideStatus = async (rideId, currentStatus) => {
-    try {
-      const newStatus =
-        currentStatus === "Not Started" ? "In Progress" : "Completed";
 
-      // Update via API
-      await axios.patch(`${keyUri.BACKEND_URI}/rides/${rideId}`, {
-        status: newStatus,
-      });
-
-      // Update local state
-      setCustomerDetails((prev) => ({
-        ...prev,
-        bookedSeats: prev.bookedSeats.map((booking) =>
-          booking.rideId._id === rideId
-            ? { ...booking, rideId: { ...booking.rideId, status: newStatus } }
-            : booking
-        ),
-      }));
-    } catch (error) {
-      console.error("Error updating ride status:", error);
-    }
-  };
   const date_in_normal_form = (rideDate) => {
     // Convert the rideDate string to a Date object
     const rideDateObj = new Date(rideDate);
@@ -304,6 +284,19 @@ const Index = () => {
   console.log(driver?._id);
   console.log("here is the fkin driver", current_driver);
   console.log("here is user data", userData);
+
+
+  const handleStatusChange = () => {
+    const updatedStatus =
+      rideStatus === "Not Started"
+        ? "Ride Started"
+        : rideStatus === "Ride Started"
+          ? "Ride Completed"
+          : "Ride Completed";
+
+    setRideStatus(updatedStatus); 
+    dispatch(updateSeatBooks(customerDetails._id, { status: updatedStatus }));
+  };
 
   return (
     <div>
@@ -353,8 +346,11 @@ const Index = () => {
           <div className="mt-6 mb-12">
             <h1 className="font-bold text-4xl text-center">Upcoming Rides</h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4 sm:px-6 md:px-8 py-6 w-full max-w-screen-xl mx-auto">
-              {getAllBooks?.map((product, index) => (
-                <div className="max-w-sm bg-white dark:bg-gray-800 shadow-md rounded-lg p-4">
+              {getAllBooks?.map((product) => (
+                <div
+                  key={product._id}
+                  className="max-w-sm bg-white dark:bg-gray-800 shadow-md rounded-lg p-4"
+                >
                   <h5 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
                     {product?.route?.name}
                   </h5>
@@ -367,199 +363,119 @@ const Index = () => {
                           onClick={() => handleseecustomer(product)}
                         >
                           See Customer Details
-                          <svg
-                            className="-mr-1 ml-2 h-4 w-4"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
-                              clipRule="evenodd"
-                            />
-                          </svg>
                         </button>
-                        {isModalOpen && (
+
+                        {isModalOpen && customerDetails?._id === product._id && (
                           <div
                             className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50"
                             onClick={closeModal}
                           >
                             <div
                               className="bg-white rounded-lg w-96 p-6"
-                              onClick={(e) => e.stopPropagation()} // Prevent closing the modal when clicking inside it
+                              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
                             >
                               <h3 className="text-2xl font-semibold mb-4">
                                 Customer Details
                               </h3>
                               {customerDetails?.bookedSeats?.length > 0 ? (
-                                <motion.div
-                                  className="space-y-4"
-                                  initial={{ opacity: 0, rotateX: 90 }}
-                                  animate={{
-                                    opacity: isVisible ? 1 : 0,
-                                    rotateX: 0,
-                                  }}
-                                  transition={{ duration: 0.5 }}
-                                >
-                                  {customerDetails.bookedSeats.map(
-                                    (booking, index) => (
-                                      <motion.div
-                                        key={booking._id}
-                                        className="border p-4 rounded-lg shadow"
-                                        initial={{ opacity: 0 }}
-                                        animate={{ opacity: 1 }}
-                                        transition={{
-                                          duration: 0.5,
-                                          delay: index * 0.2,
-                                        }}
-                                      >
-                                        {/* Name */}
-                                        <div className="flex items-start space-x-1">
-                                          <strong className="text-gray-700">
-                                            Name:
-                                          </strong>
-                                          <span className="text-gray-900">
-                                            {booking.userId?.name || "N/A"}
-                                          </span>
-                                        </div>
+                                <div className="space-y-4">
+                                  {customerDetails.bookedSeats.map((booking) => (
+                                    <div
+                                      key={booking._id}
+                                      className="border p-4 rounded-lg shadow"
+                                    >
+                                      <div className="flex items-start space-x-1">
+                                        <strong className="text-gray-700">Name:</strong>
+                                        <span className="text-gray-900">
+                                          {booking.userId?.name || "N/A"}
+                                        </span>
+                                      </div>
 
-                                        {/* Email */}
-                                        <div className="flex items-start space-x-1">
-                                          <strong className="text-gray-700">
-                                            Email:
-                                          </strong>
-                                          <span className="text-gray-900">
-                                            {booking.userId?.email ||
-                                              "Not Available"}
-                                          </span>
-                                        </div>
+                                      <div className="flex items-start space-x-1">
+                                        <strong className="text-gray-700">
+                                          Email:
+                                        </strong>
+                                        <span className="text-gray-900">
+                                          {booking.userId?.email || "Not Available"}
+                                        </span>
+                                      </div>
 
-                                        {/* Phone Number */}
-                                        <div className="flex items-start space-x-1">
-                                          <strong className="text-gray-700">
-                                            Phone:
-                                          </strong>
-                                          <span className="text-gray-900">
-                                            {booking.userId?.phone_number ||
-                                              "No Phone Number"}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-start space-x-1">
-                                          <strong className="text-gray-700">
-                                            Pickup Point:
-                                          </strong>
-                                          <span className="text-gray-900">
-                                            {booking.rideId?.pickup_point ||
-                                              "No Phone Number"}
-                                          </span>
-                                        </div>
-                                        <div className="flex items-start space-x-1">
-                                          <strong className="text-gray-700">
-                                            Drop Point:
-                                          </strong>
-                                          <span className="text-gray-900">
-                                            {booking.rideId?.drop_point ||
-                                              "No Phone Number"}
-                                          </span>
-                                        </div>
+                                      <div className="flex items-start space-x-1">
+                                        <strong className="text-gray-700">
+                                          Phone:
+                                        </strong>
+                                        <span className="text-gray-900">
+                                          {booking.userId?.phone_number ||
+                                            "No Phone Number"}
+                                        </span>
+                                      </div>
 
-                                        {/* Seat Numbers */}
-                                        <div className="flex items-start space-x-1">
-                                          <strong className="text-gray-700">
-                                            Seat Numbers:
-                                          </strong>
-                                          <ul className="list-disc pl-5 text-gray-800 space-y-1">
-                                            {booking.seatNumbers.map(
-                                              (seat, idx) => (
-                                                <motion.li
-                                                  key={idx}
-                                                  initial={{
-                                                    x: -10,
-                                                    opacity: 0,
-                                                  }}
-                                                  animate={{ x: 0, opacity: 1 }}
-                                                  transition={{
-                                                    duration: 0.3,
-                                                    delay: idx * 0.1,
-                                                  }}
-                                                  className="text-gray-900"
-                                                >
-                                                  {seat}
-                                                </motion.li>
-                                              )
-                                            )}
-                                          </ul>
-                                        </div>
-                                        {/* <div className="mt-4 flex justify-between">
-                                          <button
-                                            className={`px-4 py-2 rounded-md ${
-                                              booking.rideId.status ===
-                                              "Not Started"
-                                                ? "bg-blue-600 hover:bg-blue-700"
-                                                : "bg-green-600 hover:bg-green-700"
-                                            } text-white transition-colors`}
-                                            onClick={() =>
-                                              handleRideStatus(
-                                                booking.rideId._id,
-                                                booking.rideId.status
-                                              )
-                                            }
-                                          >
-                                            {booking.rideId.status ===
-                                            "Not Started"
-                                              ? "Start Ride"
-                                              : "End Ride"}
-                                          </button>
+                                      <div className="flex items-start space-x-1">
+                                        <strong className="text-gray-700">
+                                          Pickup Point:
+                                        </strong>
+                                        <span className="text-gray-900">
+                                          {booking.rideId?.pickup_point || "N/A"}
+                                        </span>
+                                      </div>
 
-                                          {booking.rideId.status ===
-                                            "Completed" && (
-                                            <span className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md">
-                                              Ride Completed
-                                            </span>
-                                          )}
-                                        </div> */}
-                                      </motion.div>
-                                    )
-                                  )}
-                                </motion.div>
+                                      <div className="flex items-start space-x-1">
+                                        <strong className="text-gray-700">
+                                          Drop Point:
+                                        </strong>
+                                        <span className="text-gray-900">
+                                          {booking.rideId?.drop_point || "N/A"}
+                                        </span>
+                                      </div>
+
+                                      <div className="flex items-start space-x-1">
+                                        <strong className="text-gray-700">
+                                          Seat Numbers:
+                                        </strong>
+                                        <ul className="list-disc pl-5 text-gray-800 space-y-1">
+                                          {booking.seatNumbers.map((seat, idx) => (
+                                            <li key={idx} className="text-gray-900">
+                                              {seat}
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
                               ) : (
                                 <p>No customer data available.</p>
                               )}
 
-                              <button
-                                className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-                                onClick={closeModal}
-                              >
-                                Close
-                              </button>
-                              <button
-                                className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 ml-[10.3rem]"
-                                onClick={() => {
-                                  console.log(
-                                    "button clicked",
-                                    customerDetails
-                                  );
-                                }}
-                              >
-                                {customerDetails.status === "Not Started"
-                                  ? "Start Ride"
-                                  : customerDetails.status === "Ride Started"
-                                  ? "Mark As Ride Complete"
-                                  : "Ride Completed"}
-                              </button>
+                              <div className="flex justify-between">
+                                <button
+                                  className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                                  onClick={closeModal}
+                                >
+                                  Close
+                                </button>
+                                <button
+                                  className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                                  disabled={rideStatus === "Ride Completed"}
+                                  onClick={handleStatusChange}
+                                >
+                                  {rideStatus === "Not Started"
+                                    ? "Start Ride"
+                                    : rideStatus === "Ride Started"
+                                      ? "Mark As Ride Complete"
+                                      : "Ride Completed"}
+                                </button>
+                              </div>
                             </div>
                           </div>
                         )}
                       </div>
                     ) : (
                       <div>
-                        <div className="bg-gradient-to-r from-[#020024] via-[#ed0b0b] to-[#00d4ff] bg-clip-text text-transparent">
-                          <p className="text-sm font-semibold text-red-500 mt-3">
-                            You can only view customer details before 24 hours
-                            of ride time
-                          </p>
-                        </div>
+                        <p className="text-sm font-semibold text-red-500 mt-3">
+                          You can only view customer details before 24 hours of ride
+                          time
+                        </p>
                       </div>
                     )}
                   </p>
