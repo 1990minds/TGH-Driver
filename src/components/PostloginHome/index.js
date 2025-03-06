@@ -94,6 +94,14 @@ const Index = () => {
     setIsModalOpen(true);
   };
 
+
+  const filterUpcomingRides = (rides) => {
+    const today = new Date();
+    return rides.filter((ride) => new Date(ride.rideDate) >= today);
+  };
+
+  const upcomingRides = filterUpcomingRides(getAllBooks || []);
+
   console.log("getAllBooks is-------", customerDetails);
 
   const driver_id_ = localStorage.getItem("driverid");
@@ -294,7 +302,7 @@ const Index = () => {
           ? "Ride Completed"
           : "Ride Completed";
 
-    setRideStatus(updatedStatus); 
+    setRideStatus(updatedStatus);
     dispatch(updateSeatBooks(customerDetails._id, { status: updatedStatus }));
   };
 
@@ -346,141 +354,138 @@ const Index = () => {
           <div className="mt-6 mb-12">
             <h1 className="font-bold text-4xl text-center">Upcoming Rides</h1>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 px-4 sm:px-6 md:px-8 py-6 w-full max-w-screen-xl mx-auto">
-              {getAllBooks?.map((product) => (
-                <div
-                  key={product._id}
-                  className="max-w-sm bg-white dark:bg-gray-800 shadow-md rounded-lg p-4"
-                >
-                  <h5 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
-                    {product?.route?.name}
-                  </h5>
-                  {date_in_normal_form(product?.rideDate)}
-                  <p className="text-sm text-gray-500">
-                    {isRideSoon(product?.rideDate) ? (
-                      <div>
-                        <button
-                          className="flex items-center mt-4 px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
-                          onClick={() => handleseecustomer(product)}
-                        >
-                          See Customer Details
-                        </button>
-
-                        {isModalOpen && customerDetails?._id === product._id && (
-                          <div
-                            className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50"
-                            onClick={closeModal}
+              {upcomingRides?.length > 0 ? (
+                upcomingRides?.map((product) => (
+                  <div
+                    key={product?._id}
+                    className="max-w-sm bg-white dark:bg-gray-800 shadow-md rounded-lg p-4"
+                  >
+                    <h5 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+                      {product?.route?.name}
+                    </h5>
+                    {date_in_normal_form(product?.rideDate)}
+                    <p className="text-sm text-gray-500">
+                      {isRideSoon(product?.rideDate) ? (
+                        <div>
+                          <button
+                            className="flex items-center mt-4 px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                            onClick={() => handleseecustomer(product)}
                           >
+                            See Customer Details
+                          </button>
+
+                          {isModalOpen && customerDetails?._id === product._id && (
                             <div
-                              className="bg-white rounded-lg w-96 p-6"
-                              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+                              className="fixed inset-0 flex justify-center items-center bg-gray-900 bg-opacity-50"
+                              onClick={closeModal}
                             >
-                              <h3 className="text-2xl font-semibold mb-4">
-                                Customer Details
-                              </h3>
-                              {customerDetails?.bookedSeats?.length > 0 ? (
-                                <div className="space-y-4">
-                                  {customerDetails.bookedSeats.map((booking) => (
-                                    <div
-                                      key={booking._id}
-                                      className="border p-4 rounded-lg shadow"
-                                    >
-                                      <div className="flex items-start space-x-1">
-                                        <strong className="text-gray-700">Name:</strong>
-                                        <span className="text-gray-900">
-                                          {booking.userId?.name || "N/A"}
-                                        </span>
-                                      </div>
+                              <div
+                                className="bg-white rounded-lg w-96 p-6"
+                                onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+                              >
+                                <h3 className="text-2xl font-semibold mb-4">
+                                  Customer Details
+                                </h3>
+                                {customerDetails?.bookedSeats?.length > 0 ? (
+                                  <div className="space-y-4">
+                                    {customerDetails.bookedSeats.map((booking) => (
+                                      <div
+                                        key={booking._id}
+                                        className="border p-4 rounded-lg shadow"
+                                      >
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">Name:</strong>
+                                          <span className="text-gray-900">
+                                            {booking.userId?.name || "N/A"}
+                                          </span>
+                                        </div>
 
-                                      <div className="flex items-start space-x-1">
-                                        <strong className="text-gray-700">
-                                          Email:
-                                        </strong>
-                                        <span className="text-gray-900">
-                                          {booking.userId?.email || "Not Available"}
-                                        </span>
-                                      </div>
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">Email:</strong>
+                                          <span className="text-gray-900">
+                                            {booking.userId?.email || "Not Available"}
+                                          </span>
+                                        </div>
 
-                                      <div className="flex items-start space-x-1">
-                                        <strong className="text-gray-700">
-                                          Phone:
-                                        </strong>
-                                        <span className="text-gray-900">
-                                          {booking.userId?.phone_number ||
-                                            "No Phone Number"}
-                                        </span>
-                                      </div>
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">Phone:</strong>
+                                          <span className="text-gray-900">
+                                            {booking.userId?.phone_number ||
+                                              "No Phone Number"}
+                                          </span>
+                                        </div>
 
-                                      <div className="flex items-start space-x-1">
-                                        <strong className="text-gray-700">
-                                          Pickup Point:
-                                        </strong>
-                                        <span className="text-gray-900">
-                                          {booking.rideId?.pickup_point || "N/A"}
-                                        </span>
-                                      </div>
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">
+                                            Pickup Point:
+                                          </strong>
+                                          <span className="text-gray-900">
+                                            {booking.rideId?.pickup_point || "N/A"}
+                                          </span>
+                                        </div>
 
-                                      <div className="flex items-start space-x-1">
-                                        <strong className="text-gray-700">
-                                          Drop Point:
-                                        </strong>
-                                        <span className="text-gray-900">
-                                          {booking.rideId?.drop_point || "N/A"}
-                                        </span>
-                                      </div>
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">Drop Point:</strong>
+                                          <span className="text-gray-900">
+                                            {booking.rideId?.drop_point || "N/A"}
+                                          </span>
+                                        </div>
 
-                                      <div className="flex items-start space-x-1">
-                                        <strong className="text-gray-700">
-                                          Seat Numbers:
-                                        </strong>
-                                        <ul className="list-disc pl-5 text-gray-800 space-y-1">
-                                          {booking.seatNumbers.map((seat, idx) => (
-                                            <li key={idx} className="text-gray-900">
-                                              {seat}
-                                            </li>
-                                          ))}
-                                        </ul>
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">
+                                            Seat Numbers:
+                                          </strong>
+                                          <ul className="list-disc pl-5 text-gray-800 space-y-1">
+                                            {booking.seatNumbers.map((seat, idx) => (
+                                              <li key={idx} className="text-gray-900">
+                                                {seat}
+                                              </li>
+                                            ))}
+                                          </ul>
+                                        </div>
                                       </div>
-                                    </div>
-                                  ))}
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p>No customer data available.</p>
+                                )}
+
+                                <div className="flex justify-between">
+                                  <button
+                                    className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                                    onClick={closeModal}
+                                  >
+                                    Close
+                                  </button>
+                                  <button
+                                    className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
+                                    disabled={rideStatus === "Ride Completed"}
+                                    onClick={handleStatusChange}
+                                  >
+                                    {rideStatus === "Not Started"
+                                      ? "Start Ride"
+                                      : rideStatus === "Ride Started"
+                                        ? "Mark As Ride Complete"
+                                        : "Ride Completed"}
+                                  </button>
                                 </div>
-                              ) : (
-                                <p>No customer data available.</p>
-                              )}
-
-                              <div className="flex justify-between">
-                                <button
-                                  className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-                                  onClick={closeModal}
-                                >
-                                  Close
-                                </button>
-                                <button
-                                  className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700"
-                                  disabled={rideStatus === "Ride Completed"}
-                                  onClick={handleStatusChange}
-                                >
-                                  {rideStatus === "Not Started"
-                                    ? "Start Ride"
-                                    : rideStatus === "Ride Started"
-                                      ? "Mark As Ride Complete"
-                                      : "Ride Completed"}
-                                </button>
                               </div>
                             </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <div>
-                        <p className="text-sm font-semibold text-red-500 mt-3">
-                          You can only view customer details before 24 hours of ride
-                          time
-                        </p>
-                      </div>
-                    )}
-                  </p>
-                </div>
-              ))}
+                          )}
+                        </div>
+                      ) : (
+                        <div>
+                          <p className="text-sm font-semibold text-red-500 mt-3">
+                            You can only view customer details before 24 hours of ride time.
+                          </p>
+                        </div>
+                      )}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-500">No upcoming rides available.</p>
+              )}
             </div>
           </div>
           <div className="flex flex-col items-center justify-center space-y-6 mb-14">
