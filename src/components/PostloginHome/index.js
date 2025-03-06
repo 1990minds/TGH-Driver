@@ -84,41 +84,38 @@ const Index = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [customerDetails, setCustomerDetails] = useState(null);
   const [isVisible, setIsVisible] = useState(false);
-  const { current_driver } = useSelector(driverSelector)
+  const { current_driver } = useSelector(driverSelector);
 
   const handleseecustomer = (data) => {
-    console.log(data)
+    console.log(data);
     setCustomerDetails(data);
     setIsModalOpen(true);
   };
 
+  console.log("getAllBooks is-------", customerDetails);
 
-  console.log("getAllBooks is-------", customerDetails)
-
-  const driver_id_ = (localStorage.getItem("driverid"))
+  const driver_id_ = localStorage.getItem("driverid");
   const closeModal = () => {
     setIsModalOpen(false); // Close modal
     setCustomerDetails(null); // Clear customer data
   };
 
   useEffect(() => {
-    const driverid = localStorage.getItem("Driver")
+    const driverid = localStorage.getItem("Driver");
     // const driver_id_ = localStorage.getItem("driverid")
     console.log("Setting otp's respective login setup", driverid);
     dispatch(fetchAllbooking(driverid));
     dispatch(fetchAllroute());
-    dispatch(fetchOnedriver(driver_id_))
-    dispatch(fetchAllbooking(driver_id_))
-    dispatch(getAllBookings(driver_id_))
+    dispatch(fetchOnedriver(driver_id_));
+    dispatch(fetchAllbooking(driver_id_));
+    dispatch(getAllBookings(driver_id_));
   }, [dispatch, driver_id_]);
-
 
   useEffect(() => {
     if (driver?._id) {
       dispatch(fetchAllbooking(driver?.id));
-
     }
-  }, [driver])
+  }, [driver]);
   const handleInstallClick = () => {
     setInstallable(false);
     if (deferredPrompt) {
@@ -145,7 +142,7 @@ const Index = () => {
       setInstallable(true);
     };
 
-    const handleAppInstalled = () => { };
+    const handleAppInstalled = () => {};
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
     window.addEventListener("appinstalled", handleAppInstalled);
@@ -194,10 +191,9 @@ const Index = () => {
 
   useEffect(() => {
     if (!userData) {
-      setUserData(driver)
+      setUserData(driver);
     }
-
-  }, driver)
+  }, driver);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -229,7 +225,6 @@ const Index = () => {
       fetchData();
     }
   }, []);
-
 
   useEffect(() => {
     const interval = setInterval(() => setCurrentDate(new Date()), 60000);
@@ -264,7 +259,29 @@ const Index = () => {
     setIsVisible(true);
   }, []);
 
+  const handleRideStatus = async (rideId, currentStatus) => {
+    try {
+      const newStatus =
+        currentStatus === "Not Started" ? "In Progress" : "Completed";
 
+      // Update via API
+      await axios.patch(`${keyUri.BACKEND_URI}/rides/${rideId}`, {
+        status: newStatus,
+      });
+
+      // Update local state
+      setCustomerDetails((prev) => ({
+        ...prev,
+        bookedSeats: prev.bookedSeats.map((booking) =>
+          booking.rideId._id === rideId
+            ? { ...booking, rideId: { ...booking.rideId, status: newStatus } }
+            : booking
+        ),
+      }));
+    } catch (error) {
+      console.error("Error updating ride status:", error);
+    }
+  };
   const date_in_normal_form = (rideDate) => {
     // Convert the rideDate string to a Date object
     const rideDateObj = new Date(rideDate);
@@ -284,9 +301,9 @@ const Index = () => {
 
     return formattedDate;
   };
-  console.log(driver?._id)
-  console.log("here is the fkin driver", current_driver)
-  console.log("here is user data", userData)
+  console.log(driver?._id);
+  console.log("here is the fkin driver", current_driver);
+  console.log("here is user data", userData);
 
   return (
     <div>
@@ -296,7 +313,9 @@ const Index = () => {
         <div>
           <div className="relative bg-gray-900 text-white text-center py-16 ">
             <h2 className="text-4xl font-bold mb-2">Welcome</h2>
-            <h2 className="text-4xl font-bold mb-2">{userData?.name || current_driver?.name}</h2>
+            <h2 className="text-4xl font-bold mb-2">
+              {userData?.name || current_driver?.name}
+            </h2>
             <h3 className="text-2xl font-bold mb-6">{`${date}, ${weekday}`}</h3>
             <p className="text-lg font-light mb-6">
               Track all your Rides and keep transactions organized
@@ -383,51 +402,126 @@ const Index = () => {
                                   }}
                                   transition={{ duration: 0.5 }}
                                 >
-                                  {customerDetails.bookedSeats.map((booking, index) => (
-                                    <motion.div
-                                      key={booking._id}
-                                      className="border p-4 rounded-lg shadow"
-                                      initial={{ opacity: 0 }}
-                                      animate={{ opacity: 1 }}
-                                      transition={{ duration: 0.5, delay: index * 0.2 }}
-                                    >
-                                      {/* Name */}
-                                      <div className="flex items-start space-x-1">
-                                        <strong className="text-gray-700">Name:</strong>
-                                        <span className="text-gray-900">{booking.userId?.name || "N/A"}</span>
-                                      </div>
+                                  {customerDetails.bookedSeats.map(
+                                    (booking, index) => (
+                                      <motion.div
+                                        key={booking._id}
+                                        className="border p-4 rounded-lg shadow"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        transition={{
+                                          duration: 0.5,
+                                          delay: index * 0.2,
+                                        }}
+                                      >
+                                        {/* Name */}
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">
+                                            Name:
+                                          </strong>
+                                          <span className="text-gray-900">
+                                            {booking.userId?.name || "N/A"}
+                                          </span>
+                                        </div>
 
-                                      {/* Email */}
-                                      <div className="flex items-start space-x-1">
-                                        <strong className="text-gray-700">Email:</strong>
-                                        <span className="text-gray-900">{booking.userId?.email || "Not Available"}</span>
-                                      </div>
+                                        {/* Email */}
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">
+                                            Email:
+                                          </strong>
+                                          <span className="text-gray-900">
+                                            {booking.userId?.email ||
+                                              "Not Available"}
+                                          </span>
+                                        </div>
 
-                                      {/* Phone Number */}
-                                      <div className="flex items-start space-x-1">
-                                        <strong className="text-gray-700">Phone:</strong>
-                                        <span className="text-gray-900">{booking.userId?.phone_number || "No Phone Number"}</span>
-                                      </div>
+                                        {/* Phone Number */}
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">
+                                            Phone:
+                                          </strong>
+                                          <span className="text-gray-900">
+                                            {booking.userId?.phone_number ||
+                                              "No Phone Number"}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">
+                                            Pickup Point:
+                                          </strong>
+                                          <span className="text-gray-900">
+                                            {booking.rideId?.pickup_point ||
+                                              "No Phone Number"}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">
+                                            Drop Point:
+                                          </strong>
+                                          <span className="text-gray-900">
+                                            {booking.rideId?.drop_point ||
+                                              "No Phone Number"}
+                                          </span>
+                                        </div>
 
-                                      {/* Seat Numbers */}
-                                      <div className="flex items-start space-x-1">
-                                        <strong className="text-gray-700">Seat Numbers:</strong>
-                                        <ul className="list-disc pl-5 text-gray-800 space-y-1">
-                                          {booking.seatNumbers.map((seat, idx) => (
-                                            <motion.li
-                                              key={idx}
-                                              initial={{ x: -10, opacity: 0 }}
-                                              animate={{ x: 0, opacity: 1 }}
-                                              transition={{ duration: 0.3, delay: idx * 0.1 }}
-                                              className="text-gray-900"
-                                            >
-                                              0{seat}
-                                            </motion.li>
-                                          ))}
-                                        </ul>
-                                      </div>
-                                    </motion.div>
-                                  ))}
+                                        {/* Seat Numbers */}
+                                        <div className="flex items-start space-x-1">
+                                          <strong className="text-gray-700">
+                                            Seat Numbers:
+                                          </strong>
+                                          <ul className="list-disc pl-5 text-gray-800 space-y-1">
+                                            {booking.seatNumbers.map(
+                                              (seat, idx) => (
+                                                <motion.li
+                                                  key={idx}
+                                                  initial={{
+                                                    x: -10,
+                                                    opacity: 0,
+                                                  }}
+                                                  animate={{ x: 0, opacity: 1 }}
+                                                  transition={{
+                                                    duration: 0.3,
+                                                    delay: idx * 0.1,
+                                                  }}
+                                                  className="text-gray-900"
+                                                >
+                                                  {seat}
+                                                </motion.li>
+                                              )
+                                            )}
+                                          </ul>
+                                        </div>
+                                        {/* <div className="mt-4 flex justify-between">
+                                          <button
+                                            className={`px-4 py-2 rounded-md ${
+                                              booking.rideId.status ===
+                                              "Not Started"
+                                                ? "bg-blue-600 hover:bg-blue-700"
+                                                : "bg-green-600 hover:bg-green-700"
+                                            } text-white transition-colors`}
+                                            onClick={() =>
+                                              handleRideStatus(
+                                                booking.rideId._id,
+                                                booking.rideId.status
+                                              )
+                                            }
+                                          >
+                                            {booking.rideId.status ===
+                                            "Not Started"
+                                              ? "Start Ride"
+                                              : "End Ride"}
+                                          </button>
+
+                                          {booking.rideId.status ===
+                                            "Completed" && (
+                                            <span className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md">
+                                              Ride Completed
+                                            </span>
+                                          )}
+                                        </div> */}
+                                      </motion.div>
+                                    )
+                                  )}
                                 </motion.div>
                               ) : (
                                 <p>No customer data available.</p>
@@ -439,8 +533,20 @@ const Index = () => {
                               >
                                 Close
                               </button>
-                              <button className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 ml-[4.4rem]">
-                                Mark As Ride Complete
+                              <button
+                                className="mt-4 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 ml-[10.3rem]"
+                                onClick={() => {
+                                  console.log(
+                                    "button clicked",
+                                    customerDetails
+                                  );
+                                }}
+                              >
+                                {customerDetails.status === "Not Started"
+                                  ? "Start Ride"
+                                  : customerDetails.status === "Ride Started"
+                                  ? "Mark As Ride Complete"
+                                  : "Ride Completed"}
                               </button>
                             </div>
                           </div>
@@ -466,51 +572,53 @@ const Index = () => {
               Your Vehicles
             </h1>
             <div className="flex flex-wrap justify-center gap-6">
-              {userData || current_driver?.vehicleId?.map((vehicle, index) => (
-                <div
-                  key={index}
-                  className="flex bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-4 rounded-lg shadow-md w-[26rem] sm:w-96"
-                >
-                  <div className="w-32 h-32 flex-shrink-0">
-                    <img
-                      src={vehicle?.picture_of_the_vehicle}
-                      alt={vehicle.name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
-                  </div>
+              {userData ||
+                current_driver?.vehicleId?.map((vehicle, index) => (
+                  <div
+                    key={index}
+                    className="flex bg-white dark:bg-gray-800 text-gray-900 dark:text-white p-4 rounded-lg shadow-md w-[26rem] sm:w-96"
+                  >
+                    <div className="w-32 h-32 flex-shrink-0">
+                      <img
+                        src={vehicle?.picture_of_the_vehicle}
+                        alt={vehicle.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    </div>
 
-                  <div className="flex flex-col justify-between flex-1 ml-4">
-                    <div>
-                      <h2 className="text-lg font-semibold mb-1">
-                        {`${vehicle?.reg_no}`}
-                      </h2>
-                      <h3 className="text-lg font-semibold mb-1">
-                        {`(${vehicle?.brand_and_model_name})`}
-                      </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Selected Route:{" "}
-                        {userData || current_driver?.vehicleId[index]?.route_id?.name}
-                      </p>
+                    <div className="flex flex-col justify-between flex-1 ml-4">
+                      <div>
+                        <h2 className="text-lg font-semibold mb-1">
+                          {`${vehicle?.reg_no}`}
+                        </h2>
+                        <h3 className="text-lg font-semibold mb-1">
+                          {`(${vehicle?.brand_and_model_name})`}
+                        </h3>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          Selected Route:{" "}
+                          {userData ||
+                            current_driver?.vehicleId[index]?.route_id?.name}
+                        </p>
+                      </div>
+                      <div className="flex justify-start">
+                        <button
+                          className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-500 transition"
+                          onClick={handleOpen}
+                        >
+                          Set Route
+                        </button>
+                      </div>
+                      <RouteSelectionModal
+                        open={open}
+                        handleClose={handleClose}
+                        routes={all_route}
+                        onSave={handleSaveRoutes}
+                        vehicleid={vehicle?._id}
+                        driver={userData?._id} // Pass the save handler
+                      />
                     </div>
-                    <div className="flex justify-start">
-                      <button
-                        className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-500 transition"
-                        onClick={handleOpen}
-                      >
-                        Set Route
-                      </button>
-                    </div>
-                    <RouteSelectionModal
-                      open={open}
-                      handleClose={handleClose}
-                      routes={all_route}
-                      onSave={handleSaveRoutes}
-                      vehicleid={vehicle?._id}
-                      driver={userData?._id} // Pass the save handler
-                    />
                   </div>
-                </div>
-              ))}
+                ))}
             </div>
           </div>
           ;
