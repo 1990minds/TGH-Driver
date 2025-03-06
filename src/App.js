@@ -45,7 +45,7 @@ function App() {
   console.log("<<<-->>>>",driverAuthenticate)
   return (
     <>
-      <div>
+      <div  style={{ fontFamily: 'Nunito Sans' }}>
       <Navbar/>
         <Routes>
          
