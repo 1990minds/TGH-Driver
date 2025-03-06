@@ -73,13 +73,17 @@ export const getOneBookings = (id) => async (dispatch) => {
 };
 
 
-export const updateSeatBooks = (id,updateData) => async (dispatch) => {
+export const updateSeatBooks = (id, updateData) => async (dispatch) => {
+    console.log("Updating seat booking for:", id, updateData);
+    
     dispatch(getSeatBook());
 
     try {
         const { data } = await axios.put(`${keyUri.BACKEND_URI}/api/updateBooking/${id}`, updateData);
-        console.log(data)
-        toast.success(data?.msg , {
+        
+        console.log("Updated Booking Response:", data);
+
+        toast.success(data?.msg || "Booking updated successfully!", {
             position: "top-center",
             autoClose: 2500,
             hideProgressBar: true,
@@ -87,8 +91,10 @@ export const updateSeatBooks = (id,updateData) => async (dispatch) => {
             pauseOnHover: true,
             draggable: true,
         });
-        dispatch(getOneBookings(id));
+
+        // dispatch(getOneBookings(id));
     } catch (e) {
+        console.error("Error updating seat booking:", e);
         dispatch(getSeatBookFailure());
     }
 };
